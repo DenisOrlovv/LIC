@@ -1,4 +1,4 @@
-object ScoreDisplay {
+/*object ScoreDisplay {
     var currentValue = 0
     // Inicia a classe, estabelecendo os valores iniciais.
     fun init() {
@@ -24,4 +24,4 @@ object ScoreDisplay {
     fun off(value: Boolean){
 
     }
-}
+}*/
