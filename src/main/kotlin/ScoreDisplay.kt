@@ -22,7 +22,6 @@ object ScoreDisplay {
             }
         }
 
-
         currentValue = value
         SerialEmitter.send(SerialEmitter.Destination.SCORE, 0x60,7)
     }
