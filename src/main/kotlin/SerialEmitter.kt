@@ -2,12 +2,10 @@ object SerialEmitter { // Envia tramas para os diferentes módulos Serial Receiv
 
     enum class Destination {LCD, SCORE}
 
-
-
-    private const val LCD_Sel = 0x04
-    private const val WriteBitsMask = 0x01
-    private const val Clock = 0x02
-    private const val SC_Sel = 0x10
+    private const val LCD_Sel = 0x01
+    private const val WriteBitsMask = 0x08
+    private const val Clock = 0x10
+    private const val SC_Sel = 0x02
     // Inicia a classe
     fun init() {
         HAL.init()
@@ -28,8 +26,11 @@ object SerialEmitter { // Envia tramas para os diferentes módulos Serial Receiv
             val dataShifted = data.shr(i)
             val dataCheck = 0x01
 
-            HAL.writeBits(WriteBitsMask,dataShifted)  //escreve bit por bit na mascara
-            if( dataShifted and dataCheck == 1) parity++  //Verifica se o numero de bits a 1 é par ou impar
+             //escreve bit por bit na mascara
+            if( dataShifted and dataCheck == 1) {
+                HAL.setBits(WriteBitsMask)
+                parity++
+            }  else HAL.clrBits(WriteBitsMask)//Verifica se o numero de bits a 1 é par ou impar
 
             HAL.setBits(Clock) //clock
         }

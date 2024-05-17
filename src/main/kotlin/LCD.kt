@@ -5,7 +5,7 @@ object LCD { // Escreve no LCD usando a interface a 8 bits.
     private const val COLS = 16 // Dimensão do display.
     private const val SERIAL_INTERFACE = true // Define se a interface é Série ou Paralela
     private const val RS = 0x40
-    private const val RS_TRUE = 256
+    private const val RS_TRUE = 1
     private const val RS_FALSE = 0
     private const val ENABLE = 0X20
     private const val DATA_MASK = 0x0F
@@ -35,9 +35,8 @@ object LCD { // Escreve no LCD usando a interface a 8 bits.
 
     // Escreve um byte de comando/dados no LCD em série
     private fun writeByteSerial(rs: Boolean, data: Int) {
-        val shiftedData = data + if(rs) RS_TRUE else RS_FALSE
+        val shiftedData = if(rs) data.shl(1) + RS_TRUE else data.shl(1) + RS_FALSE
         SerialEmitter.send(SerialEmitter.Destination.LCD ,shiftedData,9)
-
     }
 
 

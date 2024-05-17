@@ -1,5 +1,5 @@
 fun main () {
-    ScoreDisplay.init()
-    ScoreDisplay.setScore(513)
+    APP.init()
+    APP.startGame()
 }
 

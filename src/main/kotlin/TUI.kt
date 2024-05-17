@@ -4,6 +4,7 @@ object TUI {
         LCD.init()
         KBD.init()
     }
+    const val NONE = KBD.NONE
 
     fun clear() {
         LCD.clear()
