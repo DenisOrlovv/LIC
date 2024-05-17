@@ -1,5 +1,8 @@
 fun main () {
-    ScoreDisplay.init()
-    ScoreDisplay.setScore(513)
+    KBD.init()
+    while(true) {
+        var a = KBD.waitKey(10000)
+        println(a)
+    }
 }
 

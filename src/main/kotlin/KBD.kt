@@ -10,7 +10,6 @@ object KBD {
     // Inicia a classe
     fun init() {
         HAL.init()
-        HAL.clrBits(Kval)
         HAL.clrBits(Kack)
     }
 
