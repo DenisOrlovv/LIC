@@ -1,4 +1,5 @@
 import isel.leic.utils.Time
+import kotlin.random.Random
 
 object APP {
     fun init(){
@@ -7,82 +8,115 @@ object APP {
     }
 
 
-    var currKey: Char = TUI.read(1000)
+    private var currKey: Char = TUI.read(1000)
     private const val INVADERS_TIME_GEN: Long = 1000
-    private const val SCORE_PER_INV = 0
+    private const val SCORE_PER_INV = 10
+    private const val DISPLAY_LENGTH = 16
+    private const val DISPLAY_WIDTH = 2
+    private const val SHIP = '>'
+    private const val CHARGE = ']'
 
     private var previousKey: Char? = null
-    private var currLine:Int = 1
-    private var currTime = Time.getTimeInMillis()
-    private var inv1: Array<Char> = emptyArray()
-    private var inv2: Array<Char> = emptyArray()
-    var score: Int = 0
+    private var currLine:Int = 0
+    private var currTime = getTime()
+    private val display = Array(DISPLAY_WIDTH){Array(DISPLAY_LENGTH){TUI.NONE} }
+    private var invPointer = Array(2){15}
+    private var score: Int = 0
 
     fun startGame(){
-        var timeRef = getRefTime()
+        var timeRef = getTime()
+        display[0][0] = CHARGE
+        display[1][0] = CHARGE
+        display[0][1] = SHIP
+        drawDisplay()
         while(!lost()){
-            val invSelect = (0..1).random()
-            if(invSelect==1)inv1.generateInvaders(checkTime(timeRef))
-            else inv2.generateInvaders(checkTime(timeRef))
-            if((!checkLine() || currKey == '#') &&  currKey != TUI.NONE) drawPlayer()
-            incScore()
+            println(score)
 
-            timeRef = if (checkTime(timeRef)) getRefTime() else timeRef
-            previousKey = currKey
-            currKey = TUI.read(1000)
+            currTime = getTime()
+            currKey = TUI.read(100)
+            when(currKey) {
+                '*' -> changeLine()
+                '#' -> checkShot()
+                TUI.NONE ->{}
+                else ->{
+                    display[currLine][0] = currKey
+                    drawPlayer()
+                }
+            }
+            if(Random.nextBoolean()) generateInvader(checkTime(timeRef), 0)
+            else generateInvader(checkTime(timeRef),1)
+            timeRef = if (checkTime(timeRef)) getTime() else timeRef
+            ScoreDisplay.setScore(score)
         }
-        ScoreDisplay.setScore(score)
+
     }
 
     private fun drawPlayer(){
-        TUI.cursor(currLine-1, 0)
+        TUI.cursor(currLine, 0)
         TUI.write(currKey)
     }
 
-    private fun Array<Char>.drawInvaders(){
-        for(i in this.indices){
-            TUI.cursor(1, 16-i)
-            TUI.write(inv2[i])
+    /**
+     * Function to update the full display
+     */
+    private fun drawDisplay(){
+        for(i in display.indices) {
+            for (j in display[i].indices) {
+                TUI.cursor(i,j)
+                TUI.write(display[i][j])
+            }
         }
     }
-    private fun checkLine():Boolean {
-        return if(currKey == '*'){
-            currLine = if (currLine == 1) 2 else 1
-            true
-        }
-        else false
-    }
-    private fun getRefTime() = Time.getTimeInMillis()
 
+
+    /**
+     * Function to be used immediately after new invader spawn
+     */
+    private fun drawNewInvader(line: Int){
+        TUI.cursor(line, invPointer[line]-1)
+        TUI.write(display[line][invPointer[line]-1])
+    }
+    private fun changeLine() {
+        display[currLine][1] = TUI.NONE
+        display[currLine][0] = CHARGE
+        currLine = if (currLine == 1){
+            0
+        } else 1
+        display[currLine][1] = SHIP
+        drawDisplay()
+    }
+    private fun getTime() = Time.getTimeInMillis()
 
     private fun checkTime(refTime:Long):Boolean {
         val endTime = refTime + INVADERS_TIME_GEN
-        return if (endTime <= currTime) true
-        else false
+        return endTime <= currTime
     }
-    private fun Array<Char>.generateInvaders(timeout: Boolean) {
+    private fun shiftInvaders(line: Int){
+        val savePointer = invPointer[line]
+        while(invPointer[line] < DISPLAY_LENGTH-1){
+            display[line][invPointer[line]] = display[line][invPointer[line]+1]
+            invPointer[line] += 1
+        }
+        invPointer[line] = savePointer
+    }
+    private fun generateInvader(timeout: Boolean, line: Int){
         if (timeout){
-            this + ('0'..'9').random()
-            this.drawInvaders()
+            shiftInvaders(line)
+            display[line][DISPLAY_LENGTH-1] = ('0'..'9').random()
+            invPointer[line] -= 1
+            drawDisplay()
         }
     }
 
-
-
-
-    private fun checkShot():Boolean{
-        if(previousKey == null) return false
-        val array = if(currLine == 1) inv1 else inv2
-        return if (currKey == '#' && previousKey == array[0]){
-            array.drop(1)//remove first array element
-            true
-        } else false
+    private fun checkShot(){
+        if (invPointer[currLine] < DISPLAY_LENGTH-1 && display[currLine][0] == display[currLine][invPointer[currLine]+1]){
+            incScore(display[currLine][0].digitToInt())
+            display[currLine][invPointer[currLine]+1] = TUI.NONE//remove first array element
+            invPointer[currLine] += 1
+        }
+        display[currLine][0] = CHARGE
+        drawDisplay()
     }
-    private fun lost():Boolean = inv1.size == 15 || inv2.size == 15
-    private fun incScore():Boolean {
-        return if (checkShot()) {
-            score += SCORE_PER_INV
-            true
-        } else false
-    }
+    private fun lost():Boolean = invPointer[0] == 1 || invPointer[1] == 1
+    private fun incScore(value: Int) { score += value}
 }

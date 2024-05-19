@@ -2,22 +2,25 @@ object ScoreDisplay {
     var currentValue = 0
     // Inicia a classe, estabelecendo os valores iniciais.
     fun init() {
-        currentValue = 0x00
+        currentValue = 0
         SerialEmitter.init()
     }
     // Envia comando para atualizar o valor do mostrador de pontuação
     fun setScore(value: Int) {
         var numberToString = value.toString().map{ it.toString().toInt() }
         numberToString = numberToString.reversed()
-
         var currentNumberToString = currentValue.toString().map{ it.toString().toInt() }
         currentNumberToString = currentNumberToString.reversed()
 
+        while (numberToString.size > currentNumberToString.size) currentNumberToString = currentNumberToString + 0
+        while (numberToString.size < currentNumberToString.size) numberToString = numberToString + 0
 
-        for (i in 0..numberToString.size){
+
+        for (i in numberToString.indices){
             if (numberToString[i] != currentNumberToString[i]) {
-                var temp = i.shl(4)
-                temp += numberToString[i]
+                val temp = i + numberToString[i].shl(3)
+                println(i)
+                println(temp)
                 SerialEmitter.send(SerialEmitter.Destination.SCORE, temp, 7)
             }
         }
