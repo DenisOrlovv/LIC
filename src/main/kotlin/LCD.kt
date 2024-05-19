@@ -71,7 +71,7 @@ object LCD { // Escreve no LCD usando a interface a 8 bits.
         writeCMD(0x08)
         writeCMD(0x01)
         writeCMD(0x06)
-        writeCMD(0x0F)
+        writeCMD(0x0D) // 0x0F for blinking cursor
     }
 
 

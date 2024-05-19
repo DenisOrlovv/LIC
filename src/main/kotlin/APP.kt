@@ -11,10 +11,10 @@ object APP {
 
     private var currKey: Char = TUI.read(1000)
     private var INVADERS_TIME_GEN: Long = 1300
-    private const val LOST_SCREEN_TIME: Long = 5000
+    private const val END_SCREEN_TIME: Long = 5000
     private const val DISPLAY_LENGTH = 16
     private const val DISPLAY_WIDTH = 2
-    private const val SHIP = 3
+    private var SHIP = 3
     private const val CHARGE = ']'
 
     private var currLine: Int = 0
@@ -33,39 +33,78 @@ object APP {
         val key = TUI.read(1000)
         if (key == '*') {
             INVADERS_TIME_GEN = 1300
-            TUI.clear()
-            TUI.write("Difficulty Level")
-            TUI.cursor(1, 0)
-            TUI.write(" 1  2  3  4  5")
-            while (true) {
-                val read = TUI.read(1000)
-                if (read in '1'..'5') {
-                    difficulty = read.digitToInt()
-                    break
-                }
-            }
+            pickShipScreen()
+            pickDifficultyScreen()
             startGame()
-            TUI.clear()
-            TUI.write("***Game Lost****")
-            TUI.cursor(1, 0)
-            TUI.write("Score: $score")
-            val time = getTime() + LOST_SCREEN_TIME
-            currTime = getTime()
-            while (time > currTime) {
-                currTime = getTime()
+            endScreen()
+        }
+    }
+
+    /**
+     * Draws the pick ship screen
+     * sets the ship for the next game
+     */
+    private fun pickShipScreen(){
+        TUI.clear()
+        TUI.write("Choose your ship")
+        TUI.cursor(1, 0)
+        TUI.write(" 1-")
+        drawShip(1)
+        TUI.write("  2-")
+        drawShip(2)
+        TUI.write("  3-")
+        drawShip(3)
+        while (true) {
+            val read = TUI.read(1000)
+            if (read in '1'..'3') {
+                SHIP = read.digitToInt()
+                break
             }
         }
     }
-    private fun drawShip(){
-        TUI.cursor(currLine,1)
-        TUI.writeDATA(SHIP)
+
+    /**
+     * Draws the eng game screen
+     * Waits for LOST_SCREEN_TIME
+     */
+    private fun endScreen(){
+        TUI.clear()
+        TUI.write("***Game Lost****")
+        TUI.cursor(1, 0)
+        TUI.write("Score: $score")
+        val time = getTime()
+        currTime = getTime()
+        while (!checkTime(time, END_SCREEN_TIME)) {
+            currTime = getTime()
+        }
     }
 
-    private fun setDifficulty() {
-        INVADERS_TIME_GEN -= difficulty * 200
+    /**
+     * Draws the pick difficulty screen
+     * sets the difficulty for the next game
+     */
+    private fun pickDifficultyScreen(){
+        TUI.clear()
+        TUI.write("Difficulty Level")
+        TUI.cursor(1, 0)
+        TUI.write(" 1  2  3  4  5")
+        while (true) {
+            val read = TUI.read(1000)
+            if (read in '1'..'5') {
+                difficulty = read.digitToInt()
+                break
+            }
+        }
     }
 
-    private fun reset() {
+    private fun drawShip(ship: Int){ TUI.writeDATA(ship) } // Draws ship pattern in the current cursor position
+
+    private fun setDifficulty() { INVADERS_TIME_GEN -= difficulty * 200 } // Sets the invaders generation time according to the difficult chosen
+
+    /**
+     * Sequence of instructions to reset the game
+     */
+    private fun resetGame() {
         score = 0
         setDifficulty()
         invPointer[0] = DISPLAY_LENGTH - 1
@@ -78,16 +117,19 @@ object APP {
         }
         display[0][0] = CHARGE
         display[1][0] = CHARGE
-        drawShip()
+        TUI.cursor(currLine, 1)
+        drawShip(SHIP)
     }
 
+    /**
+     * Game App
+     * Will be running until the game ends
+     */
     private fun startGame() {
         var timeRef = getTime()
-        reset()
+        resetGame()
         drawDisplay()
         while (!lost()) {
-            println(score)
-
             currTime = getTime()
             currKey = TUI.read(100)
             when (currKey) {
@@ -99,14 +141,18 @@ object APP {
                     drawPlayer()
                 }
             }
-            if (Random.nextBoolean()) generateInvader(checkTime(timeRef), 0)
-            else generateInvader(checkTime(timeRef), 1)
-            timeRef = if (checkTime(timeRef)) getTime() else timeRef
+            if (Random.nextBoolean()) generateInvader(checkTime(timeRef, INVADERS_TIME_GEN), 0)
+            else generateInvader(checkTime(timeRef, INVADERS_TIME_GEN), 1)
+            timeRef = if (checkTime(timeRef, INVADERS_TIME_GEN)) getTime() else timeRef
             ScoreDisplay.setScore(score)
         }
 
     }
 
+    /**
+     * Draws only the value charged
+     * To be called only when a number was pressed during the game
+      */
     private fun drawPlayer() {
         TUI.cursor(currLine, 0)
         TUI.write(currKey)
@@ -119,7 +165,8 @@ object APP {
         for (i in display.indices) {
             for (j in display[i].indices) {
                 if(j == 1 && i == currLine) {
-                    drawShip()
+                    TUI.cursor(i, j)
+                    drawShip(SHIP)
                 }
                 else {
                     TUI.cursor(i, j)
@@ -129,6 +176,10 @@ object APP {
         }
     }
 
+    /**
+     * Sequence of actions to change the line
+     * To be called only when '*' was pressed during the game
+     */
     private fun changeLine() {
         display[currLine][1] = TUI.NONE
         display[currLine][0] = CHARGE
@@ -138,13 +189,19 @@ object APP {
         drawDisplay()
     }
 
-    private fun getTime() = Time.getTimeInMillis()
+    private fun getTime() = Time.getTimeInMillis()// gets the current time
 
-    private fun checkTime(refTime: Long): Boolean {
-        val endTime = refTime + INVADERS_TIME_GEN
+    /**
+     * Will return true when the time interval as passed
+     */
+    private fun checkTime(refTime: Long, interval: Long): Boolean {
+        val endTime = refTime + interval
         return endTime <= currTime
     }
 
+    /**
+     * Shifts the current invaders to receive new
+     */
     private fun shiftInvaders(line: Int) {
         val savePointer = invPointer[line]
         while (invPointer[line] < DISPLAY_LENGTH - 1) {
@@ -154,6 +211,9 @@ object APP {
         invPointer[line] = savePointer
     }
 
+    /**
+     * Inserts a new random invader
+     */
     private fun generateInvader(timeout: Boolean, line: Int) {
         if (timeout) {
             shiftInvaders(line)
@@ -163,6 +223,9 @@ object APP {
         }
     }
 
+    /**
+     * Function that removes the invader in front if the shot is valid
+     */
     private fun checkShot() {
         if (invPointer[currLine] < DISPLAY_LENGTH - 1 && display[currLine][0] == display[currLine][invPointer[currLine] + 1]) {
             incScore(display[currLine][0].digitToInt())
@@ -173,11 +236,13 @@ object APP {
         drawDisplay()
     }
 
-    private fun lost(): Boolean = invPointer[0] == 0 || invPointer[1] == 0
-    private fun incScore(value: Int) {
-        score += (value * difficulty)/3
-    }
+    private fun lost(): Boolean = invPointer[0] == 0 || invPointer[1] == 0 //Checks losing conditions
+    private fun incScore(value: Int) { score += (value * difficulty)/3 } // Score increase depending on the difficulty
 
+    /**
+     * Function that writes the ships designs in the LCD CGRAM
+     *
+     */
     private fun writeShips() {
         //nave default
         TUI.writeCMD(0x58)
@@ -213,7 +278,7 @@ object APP {
 
         //Ship design 2
         TUI.writeCMD(0x50)
-        TUI.writeDATA(0x1F)//--------1
+        TUI.writeDATA(0x0F)//--------1
         TUI.writeCMD(0x51)
         TUI.writeDATA(0x1C)//--------2
         TUI.writeCMD(0x52)
@@ -225,6 +290,6 @@ object APP {
         TUI.writeCMD(0x55)
         TUI.writeDATA(0x1C)//--------6
         TUI.writeCMD(0x56)
-        TUI.writeDATA(0x1F)//--------7
+        TUI.writeDATA(0x0F)//--------7
     }
 }

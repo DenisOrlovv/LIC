@@ -18,8 +18,6 @@ object ScoreDisplay {
         for (i in numberToString.indices){
             if (numberToString[i] != currentNumberToString[i]) {
                 val temp = i + numberToString[i].shl(3)
-                println(i)
-                println(temp)
                 SerialEmitter.send(SerialEmitter.Destination.SCORE, temp, 7)
             }
         }
