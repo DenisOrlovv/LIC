@@ -11,10 +11,10 @@ object APP {
 
     private var currKey: Char = TUI.read(1000)
     private var INVADERS_TIME_GEN: Long = 1300
-    private const val LOST_SCREEN_TIME: Long = 10000
+    private const val LOST_SCREEN_TIME: Long = 5000
     private const val DISPLAY_LENGTH = 16
     private const val DISPLAY_WIDTH = 2
-    private const val SHIP = 1
+    private const val SHIP = 3
     private const val CHARGE = ']'
 
     private var currLine: Int = 0
@@ -26,6 +26,7 @@ object APP {
 
     fun appSetup() {
         TUI.clear()
+        TUI.cursor(0,0)
         TUI.write(" Space Invaders ")
         TUI.cursor(1, 0)
         TUI.write("Press * To Start")
@@ -193,8 +194,6 @@ object APP {
         TUI.writeDATA(0x18)//--------6
         TUI.writeCMD(0x5E)
         TUI.writeDATA(0x1E)//--------7
-        TUI.writeCMD(0x5F)
-        TUI.writeDATA(0x00)//--------8
 
         //Ship design 1
         TUI.writeCMD(0x48)
@@ -211,8 +210,6 @@ object APP {
         TUI.writeDATA(0x19)//--------6
         TUI.writeCMD(0x4E)
         TUI.writeDATA(0x0E)//--------7
-        TUI.writeCMD(0x4F)
-        TUI.writeDATA(0x00)//--------8
 
         //Ship design 2
         TUI.writeCMD(0x50)
@@ -229,7 +226,5 @@ object APP {
         TUI.writeDATA(0x1C)//--------6
         TUI.writeCMD(0x56)
         TUI.writeDATA(0x1F)//--------7
-        TUI.writeCMD(0x57)
-        TUI.writeDATA(0x00)//--------8
     }
 }
