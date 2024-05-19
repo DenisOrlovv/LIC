@@ -18,6 +18,14 @@ object TUI {
         LCD.write(letter)
     }
 
+    fun writeCMD(data: Int){
+        LCD.writeCMD(data)
+    }
+
+    fun writeDATA(data:Int){
+        LCD.writeDATA(data)
+    }
+
     fun cursor(line: Int, column: Int){
         LCD.cursor(line, column)
     }
