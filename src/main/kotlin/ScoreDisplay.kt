@@ -23,12 +23,12 @@ object ScoreDisplay {
         }
 
         currentValue = value
-        SerialEmitter.send(SerialEmitter.Destination.SCORE, 0x60,7)
+        SerialEmitter.send(SerialEmitter.Destination.SCORE, 0x06,7)
     }
     // Envia comando para desativar/ativar a visualização do mostrador de pontuação
     fun off(value: Boolean){
         val command = 7
-        if (value) SerialEmitter.send(SerialEmitter.Destination.SCORE, command.shl(4) + 1, 7 )
-        else SerialEmitter.send(SerialEmitter.Destination.SCORE, command.shl(4) + 0, 7 )
+        if (value) SerialEmitter.send(SerialEmitter.Destination.SCORE, command + 8, 7 )
+        else SerialEmitter.send(SerialEmitter.Destination.SCORE, command , 7 )
     }
 }
