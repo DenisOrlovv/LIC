@@ -12,8 +12,13 @@ object ScoreDisplay {
         var currentNumberToString = currentValue.toString().map{ it.toString().toInt() }
         currentNumberToString = currentNumberToString.reversed()
 
-        while (numberToString.size > currentNumberToString.size) currentNumberToString = currentNumberToString + 0
-        while (numberToString.size < currentNumberToString.size) numberToString = numberToString + 0
+        if(currentValue == 0){
+            while (currentNumberToString.size <= 6) currentNumberToString = currentNumberToString + 0x0
+        }
+        else{
+            while (currentNumberToString.size <= 6) currentNumberToString = currentNumberToString + 0xF
+        }
+        while (numberToString.size < currentNumberToString.size) numberToString = numberToString + 0xF
 
         for (i in numberToString.indices){
             if (numberToString[i] != currentNumberToString[i]) {
