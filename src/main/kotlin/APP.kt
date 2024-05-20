@@ -68,6 +68,8 @@ object APP {
      * Waits for LOST_SCREEN_TIME
      */
     private fun endScreen(){
+        ScoreDisplay.setScore(0)
+        ScoreDisplay.off(true)
         TUI.clear()
         TUI.write("***Game Lost****")
         TUI.cursor(1, 0)
@@ -126,6 +128,7 @@ object APP {
      * Will be running until the game ends
      */
     private fun startGame() {
+        ScoreDisplay.off(false)
         var timeRef = getTime()
         resetGame()
         drawDisplay()

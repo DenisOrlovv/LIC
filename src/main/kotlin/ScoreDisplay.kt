@@ -13,7 +13,7 @@ object ScoreDisplay {
         currentNumberToString = currentNumberToString.reversed()
 
         while (numberToString.size > currentNumberToString.size) currentNumberToString = currentNumberToString + 0
-
+        while (numberToString.size < currentNumberToString.size) numberToString = numberToString + 0
 
         for (i in numberToString.indices){
             if (numberToString[i] != currentNumberToString[i]) {
