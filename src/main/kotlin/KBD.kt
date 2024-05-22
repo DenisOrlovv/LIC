@@ -4,6 +4,9 @@ const val Kval = 0x10
 const val Kack = 0x80
 const val KeyK = 0x0F
 
+fun main(){
+
+}
 object KBD {
     const val NONE = 0.toChar()
 

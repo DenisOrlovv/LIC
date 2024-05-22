@@ -1,5 +1,8 @@
 import isel.leic.UsbPort
 
+fun main(){
+    HAL.init()
+}
 object HAL { // Virtualiza o acesso ao sistema UsbPort
     var currentValue = 0
     // Inicia a classe

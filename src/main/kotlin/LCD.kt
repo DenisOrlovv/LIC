@@ -1,5 +1,8 @@
 import isel.leic.utils.Time
 
+fun main(){
+
+}
 object LCD { // Escreve no LCD usando a interface a 8 bits.
     private const val LINES = 2
     private const val COLS = 16 // Dimensão do display.
@@ -71,7 +74,7 @@ object LCD { // Escreve no LCD usando a interface a 8 bits.
         writeCMD(0x08)
         writeCMD(0x01)
         writeCMD(0x06)
-        writeCMD(0x0D) // 0x0F for blinking cursor
+        writeCMD(0x0D) // 0x0F for blinking cursor, OX0D for cursor off
     }
 
 
@@ -99,6 +102,7 @@ object LCD { // Escreve no LCD usando a interface a 8 bits.
 
     // Envia comando para limpar o ecrã e posicionar o cursor em (0,0)
     fun clear() {
+        Time.sleep(5)
         writeCMD(0x01)
     }
 }

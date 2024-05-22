@@ -1,10 +1,15 @@
+
+fun main(){
+
+}
+
 object SerialEmitter { // Envia tramas para os diferentes módulos Serial Receiver.
 
     enum class Destination {LCD, SCORE}
 
     private const val LCD_Sel = 0x01
-    private const val WriteBitsMask = 0x08
-    private const val Clock = 0x10
+    private const val SDX = 0x08
+    private const val SCLK = 0x10
     private const val SC_Sel = 0x02
     // Inicia a classe
     fun init() {
@@ -21,30 +26,30 @@ object SerialEmitter { // Envia tramas para os diferentes módulos Serial Receiv
         var parity = 0
 
         for (i in 0..<size){
-            HAL.clrBits(Clock) //clock
+            HAL.clrBits(SCLK) //clock
 
             val dataShifted = data.shr(i)
             val dataCheck = 0x01
 
              //escreve bit por bit na mascara
             if( dataShifted and dataCheck == 1) {
-                HAL.setBits(WriteBitsMask)
+                HAL.setBits(SDX)
                 parity++
-            }  else HAL.clrBits(WriteBitsMask)//Verifica se o numero de bits a 1 é par ou impar
+            }  else HAL.clrBits(SDX)//Verifica se o numero de bits a 1 é par ou impar
 
-            HAL.setBits(Clock) //clock
+            HAL.setBits(SCLK) //clock
         }
 
-        HAL.clrBits(Clock) //clock
+        HAL.clrBits(SCLK) //clock
 
-        if(parity%2 == 0) HAL.clrBits(WriteBitsMask)  //Checks the parity, and if even sets temp bit to 0, if not set to 1
-        else HAL.setBits(WriteBitsMask)
+        if(parity%2 == 0) HAL.clrBits(SDX)  //Checks the parity, and if even sets temp bit to 0, if not set to 1
+        else HAL.setBits(SDX)
 
-        HAL.setBits(Clock) //clock
+        HAL.setBits(SCLK) //clock
 
         HAL.setBits(LCD_Sel)  // sets the select bits back to 1
         HAL.setBits(SC_Sel)
 
-        HAL.clrBits(Clock) //clock
+        HAL.clrBits(SCLK) //clock
     }
 }

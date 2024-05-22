@@ -1,3 +1,7 @@
+
+fun main(){
+
+}
 object ScoreDisplay {
     var currentValue = 0
     // Inicia a classe, estabelecendo os valores iniciais.
