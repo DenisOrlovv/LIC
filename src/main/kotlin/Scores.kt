@@ -14,8 +14,7 @@ fun main(){
 
 
 object Scores {
-    data class Info(val name: String, val score: Int)
-    data class Score(var position: Int, val info: Info)
+    data class Score(var position: Int, val name: String, val score: Int)
 
     private const val SCORES_FILE_NAME = "scores"
 
@@ -24,11 +23,10 @@ object Scores {
      * Does all the work regarding the writing process of each score
      */
     fun writeScore(name: String, score: Int) {
-        val content = Info(name,score)
         //updates the score file with the new score and sorts it
         val scores = readScores()
-        val newScore = Score(0, content)
-        val updatedScores = (scores + newScore).sortedByDescending { it.info.score }
+        val newScore = Score(0, name, score)
+        val updatedScores = (scores + newScore).sortedByDescending { it.score }
 
         //sets the right leaderboard place to each score
         updatedScores.forEachIndexed { index, score ->
@@ -36,7 +34,7 @@ object Scores {
         }
         //only uses the 10 top ones
         val topScores = updatedScores.take(10)
-        val sortedLines = topScores.map { "${"%02d".format(it.position)}-${it.info.name}-${it.info.score}" }
+        val sortedLines = topScores.map { "${"%02d".format(it.position)}-${it.name}-${it.score}" }
         //clears the file so it can write new leaderboard
         FileAccess.deleteAllLinesFromFile(SCORES_FILE_NAME)
         for (line in sortedLines) {
@@ -56,7 +54,7 @@ object Scores {
             val position = cutData[0].toInt()
             val name = cutData[1]
             val score = cutData[2].toInt()
-            scores.add(Score(position, Info(name, score)))
+            scores.add(Score(position, name, score))
         }
         return scores
     }
@@ -67,8 +65,8 @@ object Scores {
      */
     fun isNewTopScore(score: Int): Boolean {
         val scores = readScores()
-        val newScore = Score(0, Info("test", score))
-        val updatedScores = (scores + newScore).sortedByDescending { it.info.score }
+        val newScore = Score(0, "test", score)
+        val updatedScores = (scores + newScore).sortedByDescending { it.score }
         return updatedScores.indexOf(newScore) < 10
     }
 }
