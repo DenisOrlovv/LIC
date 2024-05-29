@@ -28,7 +28,10 @@ object FileAccess {
         val file = File(fileName)
         return if (file.exists() && file.readLines().isNotEmpty()) {
             file.readLines()
-        }else emptyList()
+        }else {
+            createTxtFile(fileName, "")
+            emptyList()
+        }
     }
 
     fun readLineFromFile(fileName: String, lineNumber: Int) : String?{
