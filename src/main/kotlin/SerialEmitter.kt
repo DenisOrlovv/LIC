@@ -1,6 +1,7 @@
+import isel.leic.utils.Time
 
 fun main(){
-
+    SerialEmitter.send(SerialEmitter.Destination.LCD, 0b111000111, 9)
 }
 
 object SerialEmitter { // Envia tramas para os diferentes módulos Serial Receiver.
@@ -11,10 +12,6 @@ object SerialEmitter { // Envia tramas para os diferentes módulos Serial Receiv
     private const val SDX = 0x08
     private const val SCLK = 0x10
     private const val SC_Sel = 0x02
-    // Inicia a classe
-    fun init() {
-        HAL.init()
-    }
     // Envia uma trama para o SerialReceiver identificado o destino em addr,os bits de dados em
     // ‘data’ e em size o número de bits a enviar.
     fun send(addr: Destination, data: Int, size : Int) {
@@ -31,7 +28,7 @@ object SerialEmitter { // Envia tramas para os diferentes módulos Serial Receiv
             val dataShifted = data.shr(i)
             val dataCheck = 0x01
 
-             //escreve bit por bit na mascara
+            //escreve bit por bit na mascara
             if( dataShifted and dataCheck == 1) {
                 HAL.setBits(SDX)
                 parity++
@@ -46,10 +43,14 @@ object SerialEmitter { // Envia tramas para os diferentes módulos Serial Receiv
         else HAL.setBits(SDX)
 
         HAL.setBits(SCLK) //clock
+        HAL.clrBits(SCLK) //clock
 
         HAL.setBits(LCD_Sel)  // sets the select bits back to 1
         HAL.setBits(SC_Sel)
 
-        HAL.clrBits(SCLK) //clock
+    }
+    // Inicia a classe
+    fun init() {
+        HAL.init()
     }
 }

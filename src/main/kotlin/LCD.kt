@@ -1,6 +1,17 @@
 import isel.leic.utils.Time
 
 fun main(){
+    HAL.init()
+    SerialEmitter.init()
+    LCD.init()
+    while (true){
+        Time.sleep(100)
+        LCD.clear()
+        LCD.cursor(0,0)
+        LCD.write("0123456789ABCDEF")
+        LCD.cursor(1,0)
+        LCD.write("0123456789ABCDEF")
+    }
 
 }
 object LCD { // Escreve no LCD usando a interface a 8 bits.
@@ -74,7 +85,7 @@ object LCD { // Escreve no LCD usando a interface a 8 bits.
         writeCMD(0x08)
         writeCMD(0x01)
         writeCMD(0x06)
-        writeCMD(0x0D) // 0x0F for blinking cursor, OX0D for cursor off
+        writeCMD(0x0C) // 0-blinking cursor position, 1-cursor on/off, 2-Display on/off
     }
 
 
@@ -102,7 +113,7 @@ object LCD { // Escreve no LCD usando a interface a 8 bits.
 
     // Envia comando para limpar o ecrã e posicionar o cursor em (0,0)
     fun clear() {
-        Time.sleep(5)
         writeCMD(0x01)
+        Time.sleep(2)
     }
 }

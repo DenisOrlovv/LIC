@@ -6,7 +6,7 @@ fun main(){
         val nome = (1..5).map { letters.random() }.joinToString("")
         val randomScore = (0..10000).random()
         if (Scores.isNewTopScore(randomScore)){
-            Scores.writeScore(Scores.Info(nome, randomScore))
+            Scores.writeScore(nome, randomScore)
         }
         //println(Scores.Info(nome, randomScore))
     }
@@ -23,7 +23,8 @@ object Scores {
     /**
      * Does all the work regarding the writing process of each score
      */
-    fun writeScore(content: Info) {
+    fun writeScore(name: String, score: Int) {
+        val content = Info(name,score)
         //updates the score file with the new score and sorts it
         val scores = readScores()
         val newScore = Score(0, content)
