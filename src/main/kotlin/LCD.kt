@@ -46,13 +46,11 @@ object LCD { // Escreve no LCD usando a interface a 8 bits.
         HAL.clrBits(ENABLE)
     }
 
-
     // Escreve um byte de comando/dados no LCD em série
     private fun writeByteSerial(rs: Boolean, data: Int) {
         val shiftedData = if(rs) data.shl(1) + RS_TRUE else data.shl(1) + RS_FALSE
         SerialEmitter.send(SerialEmitter.Destination.LCD ,shiftedData,9)
     }
-
 
     // Escreve um byte de comando/dados no LCD
     private fun writeByte(rs: Boolean, data: Int) {
@@ -60,18 +58,15 @@ object LCD { // Escreve no LCD usando a interface a 8 bits.
         else writeByteParallel(rs, data)
     }
 
-
     // Escreve um comando no LCD
     fun writeCMD(data: Int) {
         writeByte(false, data)
     }
 
-
     // Escreve um dado no LCD
     fun writeDATA(data: Int) {
         writeByte(true, data)
     }
-
 
     // Envia a sequência de iniciação para comunicação a 8 bits.
     fun init() {
@@ -88,12 +83,10 @@ object LCD { // Escreve no LCD usando a interface a 8 bits.
         writeCMD(0x0C) // 0-blinking cursor position, 1-cursor on/off, 2-Display on/off
     }
 
-
     // Escreve um caráter na posição corrente.
     fun write(c: Char) {
         writeDATA(c.code)
     }
-
 
     // Escreve uma string na posição corrente.
     fun write(text: String) {
@@ -102,15 +95,13 @@ object LCD { // Escreve no LCD usando a interface a 8 bits.
         }
     }
 
-
     // Envia comando para posicionar cursor (‘line’:0..LINES-1 , ‘column’:0..COLS-1)
     fun cursor(line: Int, column: Int) {
         if (line == 0) {
             writeCMD(0x80 + column)
         } else writeCMD(0xC0 + column)
     }
-
-
+    
     // Envia comando para limpar o ecrã e posicionar o cursor em (0,0)
     fun clear() {
         writeCMD(0x01)

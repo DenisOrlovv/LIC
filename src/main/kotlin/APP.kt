@@ -143,7 +143,7 @@ object APP {
             }
         }
         TUI.writeCMD(0x0C)// cursor off
-        return name.toString()
+        return (name.slice(0..nameLength)).joinToString("")
     }
 
     /**
