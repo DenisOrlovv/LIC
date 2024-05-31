@@ -3,9 +3,6 @@ import kotlin.random.Random
 
 fun main () {
     APP.init()
-    while (true){
-        APP.appSetup()
-    }
 }
 object APP {
     fun init() {
@@ -15,23 +12,39 @@ object APP {
         writeShips()
     }
 
-
-    private var currKey: Char = TUI.read(1000)
-    private var INVADERS_TIME_GEN: Array<Long> = arrayOf(1000, 800, 600, 400, 300)
-    private const val END_SCREEN_TIME: Long = 1000
+    //Game constants
+    private const val END_SCREEN_TIME: Long = 1000      //Time it takes to go back to main menu after a game
     private const val DISPLAY_LENGTH = 16
     private const val DISPLAY_WIDTH = 2
-    private var DIGITAL_SHIP = '>'
-    private var SHIP = 3
+    private const val DIGITAL_SHIP = '>'
     private const val CHARGE = ']'
 
+    //Game variables
+    private var currKey: Char = TUI.read(1000)  //key that was pressed
+    private var INVADERS_TIME_GEN: Array<Long> = arrayOf(1000, 800, 600, 400, 300)// Times it takes to generate invaders
+    private var SHIP = 3                //Ship that appears in LCD
     private var currLine: Int = 0
-    private var currTime = getTime()
-    private val currDisplay = Array(DISPLAY_WIDTH) { Array(DISPLAY_LENGTH) { TUI.NONE } }
-    private val nextDisplay = Array(DISPLAY_WIDTH) { Array(DISPLAY_LENGTH) { TUI.NONE } }
-    private var invPointer = Array(2) { DISPLAY_LENGTH - 1 }
-    private var score: Int = 0
-    private var difficulty: Int = 1
+    private var currTime = getTime()    //Game Clock
+    private val currDisplay = Array(DISPLAY_WIDTH) { Array(DISPLAY_LENGTH) { TUI.NONE } } //Digital print of LCD
+    private val nextDisplay = Array(DISPLAY_WIDTH) { Array(DISPLAY_LENGTH) { TUI.NONE } } //Next frame of the game
+    private var invPointer = Array(2) { DISPLAY_LENGTH - 1 } //Front invader current position
+    private var score: Int = 0      //Score of the current game
+    private var difficulty: Int = 3 //Difficulty set by the player
+    private var scores = Scores.readScores()
+    private var stats = Statistics.getStats()
+
+    fun systemSetup(){
+        outerLoop@while (true) {
+            while(!Maintenance.checkMaintenance()) {
+                APP.appSetup()
+            }
+            while(Maintenance.checkMaintenance()){
+                if (APP.maintenanceSetup(stats)) break@outerLoop
+            }
+
+        }
+        Scores.writeScore(scores)
+    }
 
     fun appSetup() {
         mainMenu()
@@ -43,6 +56,26 @@ object APP {
             startGame()
             endScreen()
         }
+        if (score != 0) {
+            val name = getName()
+            scores += Scores.setScore(name, score, scores)
+        }
+    }
+
+    fun maintenanceSetup(stats:Pair<Int,Int>):Boolean{
+        maintenanceScreen()
+        val key = TUI.getKey()
+        when(key){
+            '*'->{}
+            '#'->{ if (shutDown()) return true }
+            else ->{
+                SHIP = 3
+                difficulty = 3
+                startGame()
+                endScreen()
+            }
+        }
+        return false
     }
 
     // Screens API
@@ -53,7 +86,22 @@ object APP {
         scoreAnimation()
     }
 
+    private fun maintenanceScreen(){
+        displayWrite(0," On Maintenance ")
+        displayWrite(1,"*-Count #-shutD")
+    }
 
+    private fun shutDown():Boolean{
+        displayWrite(0,"   ShutDown   ")
+        displayWrite(1," 5-Yes other-No ")
+        val key = TUI.read(5000)
+        return key == '5'
+    }
+
+    private fun statsScreen(stats:Pair<Int,Int>){
+        displayWrite(0,"Games:${stats.first}   ")
+        displayWrite(1,"Coins:${stats.second}   ")
+    }
     /**
      * Draws the pick ship screen
      * sets the ship for the next game
@@ -85,21 +133,18 @@ object APP {
         TUI.clear()
         displayWrite(0, "***Game Over****")
         displayWrite(1,"Score: $score" )
-        if (Scores.isNewTopScore(score)) {
-            val name = getName()
-            println(name)
-            Scores.writeScore(name, score)
-        }
         val time = getTime()
         currTime = getTime()
         while (!checkTimeout(time, END_SCREEN_TIME)) {
             currTime = getTime()
+            ScoreDisplay.off(true)
+            ScoreDisplay.off(false)
         }
         setScoreAnimation()
     }
 
     /**
-     * Function that will get the name of the new high score
+     * Function that will get the name of the player with the current score
      */
     private fun getName():String{
         TUI.writeCMD(0x0F)// cursor on
@@ -113,7 +158,7 @@ object APP {
             name[cursor] = character
             displayWrite(0,5+cursor,name[cursor])
             TUI.cursor(0,5+cursor)
-            key = TUI.read(500)
+            key = TUI.read(1000)
             when(key){
                 '2' -> if(character<'Z') character++
                 '8' -> if (character>'A') character--
@@ -193,8 +238,8 @@ object APP {
     }
 
     /**
-     * Game App
-     * Will be running until the game ends
+     * Game App.
+     * Will be running until the game ends.
      */
     private fun startGame() {
         var timeRef = getTime()
@@ -235,8 +280,8 @@ object APP {
         drawShip(ship)
     }
     /**
-     * Draws only the value charged
-     * To be called only when a number was pressed during the game
+     * Draws only the value charged.
+     * To be called only when a number was pressed during the game.
       */
     private fun drawPlayer(key: Char) {
         nextDisplay[currLine][0] = key
@@ -245,8 +290,8 @@ object APP {
     }
 
     /**
-     * Function that updates the full display
-     * It will only change what needs to be changed
+     * Function that updates the full display.
+     * It will only change what needs to be changed.
      */
     private fun updateDisplay() {
         for (i in nextDisplay.indices) {
@@ -262,8 +307,8 @@ object APP {
 
     //Game API
     /**
-     * Sequence of actions to change the line
-     * To be called only when '*' was pressed during the game
+     * Sequence of actions to change the line.
+     * To be called only when '*' was pressed during the game.
      */
     private fun changeLine() {
         nextDisplay[currLine][1] = TUI.NONE
@@ -297,7 +342,6 @@ object APP {
         }
         invPointer[line] = savePointer
     }
-
     /**
      * Inserts a new random invader
      */
@@ -331,7 +375,6 @@ object APP {
     //LCD memory set
     /**
      * Function that writes the ships designs in the LCD CGRAM
-     *
      */
     private fun writeShips() {
 
@@ -408,7 +451,8 @@ object APP {
         TUI.writeDATA(0x00)//--------8
     }
 
-    fun setScoreAnimation(){
+    //Score Display Animations API
+    private fun setScoreAnimation(){
         ScoreDisplay.currentValue[0] = 0xA
         ScoreDisplay.currentValue[1] = 0xE
         ScoreDisplay.currentValue[2] = 0xD
@@ -416,7 +460,7 @@ object APP {
         ScoreDisplay.currentValue[4] = 0xB
         ScoreDisplay.currentValue[5] = 0xA
     }
-    fun scoreAnimation() {
+    private fun scoreAnimation() {
         for (i in ScoreDisplay.currentValue.indices){
             val data = ScoreDisplay.currentValue[i].shl(3) + (5-i)
             ScoreDisplay.send( data ,7)

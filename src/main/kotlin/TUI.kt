@@ -13,6 +13,9 @@ object TUI {
     fun read(timeOut: Long): Char {
         return KBD.waitKey(timeOut)
     }
+    fun getKey(): Char {
+        return KBD.getKey()
+    }
 
     fun write(letter: Char) {
         LCD.write(letter)

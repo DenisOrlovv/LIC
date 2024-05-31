@@ -46,7 +46,7 @@ object Scores {
     /**
      * Does all the work of parsing the data into a List<Score> from the txt
      */
-    fun readScores(): List<Score> {
+    fun readScores(): MutableList<Score> {
         val scores = mutableListOf<Score>()
         val lines = FileAccess.readAllLinesFromFile(SCORES_FILE_NAME)
         for (line in lines) {
@@ -70,5 +70,9 @@ object Scores {
         val newScore = Score(0, "test", score)
         val updatedScores = (scores + newScore).sortedByDescending { it.score }
         return updatedScores.indexOf(newScore) < 10
+    }
+
+    fun setScore(name:String, score:Int, scores:MutableList<Score>):MutableList<Score>{
+
     }
 }
