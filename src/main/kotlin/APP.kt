@@ -3,6 +3,7 @@ import kotlin.random.Random
 
 fun main () {
     APP.init()
+    APP.systemSetup()
 }
 object APP {
     fun init() {
@@ -31,25 +32,29 @@ object APP {
     private var score: Int = 0      //Score of the current game
     private var difficulty: Int = 3 //Difficulty set by the player
     private var scores = Scores.readScores()
-    private var stats = Statistics.getStats()
+    private var Coins  = Statistics.getStats().second
+    private var Games = Statistics.getStats().first
 
     fun systemSetup(){
         outerLoop@while (true) {
             while(!Maintenance.checkMaintenance()) {
-                APP.appSetup()
+                appSetup()
             }
             while(Maintenance.checkMaintenance()){
-                if (APP.maintenanceSetup(stats)) break@outerLoop
+                if (maintenanceSetup()) break@outerLoop
             }
 
         }
         Scores.writeScore(scores)
+        Statistics.writeStats(Coins, Games)
     }
 
     fun appSetup() {
         mainMenu()
+        if (CoinAcceptor.getCoin())Coins += 2
         val key = TUI.read(250)
         if (key == '*') {
+            Games++
             ScoreDisplay.off(true)
             pickShipScreen()
             pickDifficultyScreen()
@@ -62,11 +67,13 @@ object APP {
         }
     }
 
-    fun maintenanceSetup(stats:Pair<Int,Int>):Boolean{
+    private fun maintenanceSetup():Boolean{
         maintenanceScreen()
         val key = TUI.getKey()
         when(key){
-            '*'->{}
+            '*'->{
+                statsScreen()
+            }
             '#'->{ if (shutDown()) return true }
             else ->{
                 SHIP = 3
@@ -98,9 +105,10 @@ object APP {
         return key == '5'
     }
 
-    private fun statsScreen(stats:Pair<Int,Int>){
-        displayWrite(0,"Games:${stats.first}   ")
-        displayWrite(1,"Coins:${stats.second}   ")
+    private fun statsScreen(){
+        displayWrite(0,"Games:$Games   ")
+        displayWrite(1,"Coins:$Coins   ")
+        Time.sleep(5000)
     }
     /**
      * Draws the pick ship screen
