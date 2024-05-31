@@ -3,14 +3,11 @@ import isel.leic.utils.Time
 fun main(){
     ScoreDisplay.init()
     ScoreDisplay.off(false)
-    ScoreDisplay.setScoreAnimation()
-    while (true){
-        Time.sleep(250)
-        ScoreDisplay.scoreAnimation()
-    }
+    ScoreDisplay.setScore(123456)
+
 }
 object ScoreDisplay {
-    private var currentValue = Array(6){0xF}
+    var currentValue = Array(6){0xF}
     // Inicia a classe, estabelecendo os valores iniciais.
     fun init() {
         SerialEmitter.init()
@@ -39,23 +36,7 @@ object ScoreDisplay {
         else SerialEmitter.send(SerialEmitter.Destination.SCORE, command , 7 )
     }
 
-    fun setScoreAnimation(){
-        currentValue[0] = 0xA
-        currentValue[1] = 0xE
-        currentValue[2] = 0xD
-        currentValue[3] = 0XC
-        currentValue[4] = 0xB
-        currentValue[5] = 0xA
-    }
-    fun scoreAnimation() {
-        for (i in currentValue.indices){
-            val data = currentValue[i].shl(3) + (5-i)
-            SerialEmitter.send(SerialEmitter.Destination.SCORE, data ,7)
-            if (currentValue[i] < 0xE){
-                currentValue[i]++
-            }
-            else currentValue[i] = 0xA
-        }
-        SerialEmitter.send(SerialEmitter.Destination.SCORE, 0x06,7)
+    fun send( data:Int, size:Int){
+        SerialEmitter.send(SerialEmitter.Destination.SCORE,data,size)
     }
 }

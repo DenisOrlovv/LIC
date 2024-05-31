@@ -50,11 +50,13 @@ object Scores {
         val scores = mutableListOf<Score>()
         val lines = FileAccess.readAllLinesFromFile(SCORES_FILE_NAME)
         for (line in lines) {
-            val cutData = line.split("-")
-            val position = cutData[0].toInt()
-            val name = cutData[1]
-            val score = cutData[2].toInt()
-            scores.add(Score(position, name, score))
+            if (line.isNotBlank()) {
+                val cutData = line.split("-")
+                val position = cutData[0].toInt()
+                val name = cutData[1]
+                val score = cutData[2].toInt()
+                scores.add(Score(position, name, score))
+            }
         }
         return scores
     }

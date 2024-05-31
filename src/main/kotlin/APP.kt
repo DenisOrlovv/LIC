@@ -11,7 +11,7 @@ object APP {
     fun init() {
         TUI.init()
         ScoreDisplay.init()
-        ScoreDisplay.setScoreAnimation()
+        setScoreAnimation()
         writeShips()
     }
 
@@ -50,7 +50,7 @@ object APP {
         TUI.clear()
         displayWrite(0, " Space Invaders ")
         displayWrite(1,"Press * To Start")
-        ScoreDisplay.scoreAnimation()
+        scoreAnimation()
     }
 
 
@@ -95,7 +95,7 @@ object APP {
         while (!checkTimeout(time, END_SCREEN_TIME)) {
             currTime = getTime()
         }
-        ScoreDisplay.setScoreAnimation()
+        setScoreAnimation()
     }
 
     /**
@@ -406,5 +406,25 @@ object APP {
         TUI.writeDATA(0x0F)//--------7
         TUI.writeCMD(0x57)
         TUI.writeDATA(0x00)//--------8
+    }
+
+    fun setScoreAnimation(){
+        ScoreDisplay.currentValue[0] = 0xA
+        ScoreDisplay.currentValue[1] = 0xE
+        ScoreDisplay.currentValue[2] = 0xD
+        ScoreDisplay.currentValue[3] = 0XC
+        ScoreDisplay.currentValue[4] = 0xB
+        ScoreDisplay.currentValue[5] = 0xA
+    }
+    fun scoreAnimation() {
+        for (i in ScoreDisplay.currentValue.indices){
+            val data = ScoreDisplay.currentValue[i].shl(3) + (5-i)
+            ScoreDisplay.send( data ,7)
+            if (ScoreDisplay.currentValue[i] < 0xE){
+                ScoreDisplay.currentValue[i]++
+            }
+            else ScoreDisplay.currentValue[i] = 0xA
+        }
+        ScoreDisplay.send( 0x06,7)
     }
 }
