@@ -60,7 +60,7 @@ object Scores {
     /**
      * Does all the work of parsing the data into a List<Score> from the txt
      */
-    fun readScores(): MutableList<Score> {
+    fun readScores(): List<Score> {
         val scores = mutableListOf<Score>()
         val lines = FileAccess.readAllLinesFromFile(SCORES_FILE_NAME)
         for (line in lines) {

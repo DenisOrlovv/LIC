@@ -19,23 +19,33 @@ object APP {
     private const val DISPLAY_WIDTH = 2
     private const val DIGITAL_SHIP = '>'
     private const val CHARGE = ']'
+    private const val SCORES_SWITCH_TIME:Long = 2000
 
     //Game variables
     private var currKey: Char = TUI.read(1000)  //key that was pressed
     private var INVADERS_TIME_GEN: Array<Long> = arrayOf(1000, 800, 600, 400, 300)// Times it takes to generate invaders
     private var SHIP = 3                //Ship that appears in LCD
     private var currLine: Int = 0
-    private var currTime = getTime()    //Game Clock
+    private var currTime = getTime()    //System Clock
     private val currDisplay = Array(DISPLAY_WIDTH) { Array(DISPLAY_LENGTH) { TUI.NONE } } //Digital print of LCD
     private val nextDisplay = Array(DISPLAY_WIDTH) { Array(DISPLAY_LENGTH) { TUI.NONE } } //Next frame of the game
     private var invPointer = Array(2) { DISPLAY_LENGTH - 1 } //Front invader current position
     private var score: Int = 0      //Score of the current game
     private var difficulty: Int = 3 //Difficulty set by the player
+
+    //Display variables
     private var scores = Scores.readScores()
     private var Coins  = Statistics.getStats().second
     private var Games = Statistics.getStats().first
+    private var scoreCounter = 0
+    private var CredsShower = true
+    private var scoresTimeRef:Long = 0
+    private var creds = 0
 
     fun systemSetup(){
+        displayWrite(0, " Space Invaders ")
+        displayWrite(1, " *-Start   $$Coins ")
+        Time.sleep(2000)
         outerLoop@while (true) {
             while(!Maintenance.checkMaintenance()) {
                 appSetup()
@@ -47,14 +57,24 @@ object APP {
         }
         Scores.writeScore(scores)
         Statistics.writeStats(Coins, Games)
+        ScoreDisplay.off(true)
+        TUI.clear()
     }
 
     fun appSetup() {
         mainMenu()
-        if (CoinAcceptor.getCoin())Coins += 2
-        val key = TUI.read(250)
-        if (key == '*') {
+        if (CoinAcceptor.getCoin()){
+            Coins ++
+            creds += 2
+        }
+        val key = TUI.read(100)
+        if (CoinAcceptor.getCoin()){
+            Coins ++
+            creds += 2
+        }
+        if (key == '*' && Coins != 0) {
             Games++
+            creds--
             ScoreDisplay.off(true)
             pickShipScreen()
             pickDifficultyScreen()
@@ -63,52 +83,88 @@ object APP {
         }
         if (score != 0) {
             val name = getName()
-            scores += Scores.setScore(name, score, scores)
+            scores = Scores.setScore(name, score, scores)
         }
+        score = 0
     }
 
     private fun maintenanceSetup():Boolean{
         maintenanceScreen()
-        val key = TUI.getKey()
+        val key = TUI.read(250)
         when(key){
             '*'->{
                 statsScreen()
+                val key = TUI.read(3000)
+                if(key == '#') clearStats()
             }
             '#'->{ if (shutDown()) return true }
+            TUI.NONE->{}
             else ->{
                 SHIP = 3
                 difficulty = 3
                 startGame()
                 endScreen()
+                score = 0
             }
         }
         return false
     }
 
     // Screens API
+    private fun clearStats(){
+        displayWrite(0," Clear Counters ")
+        displayWrite(1,"5-Yes  other-No ")
+        val key = TUI.read(3000)
+        if (key == '5'){
+            Games = 0
+            Coins = 0
+        }
+    }
+
+
     private fun mainMenu(){
-        TUI.clear()
+        currTime = getTime()
         displayWrite(0, " Space Invaders ")
-        displayWrite(1,"Press * To Start")
+        if(checkTimeout(scoresTimeRef, SCORES_SWITCH_TIME )) {
+            if (creds == 0) {
+                if (scores.isNotEmpty()) drawScores()
+            } else {
+                if (scores.isNotEmpty() && !CredsShower) {
+                    drawScores()
+                    CredsShower = true
+                } else {
+                    displayWrite(1, " *-Start   $$creds    ")
+                    CredsShower = false
+                }
+
+            }
+            scoresTimeRef = getTime()
+        }
+
         scoreAnimation()
     }
 
+    private fun drawScores(){
+        displayWrite(1, "${"%02d".format(scores[scoreCounter].position)}-${scores[scoreCounter].name}   ${scores[scoreCounter].score}      ")
+        if (scoreCounter < scores.size - 1) scoreCounter++ else scoreCounter = 0
+    }
+
+
     private fun maintenanceScreen(){
         displayWrite(0," On Maintenance ")
-        displayWrite(1,"*-Count #-shutD")
+        displayWrite(1,"*-Count #-shutD ")
     }
 
     private fun shutDown():Boolean{
-        displayWrite(0,"   ShutDown   ")
-        displayWrite(1," 5-Yes other-No ")
+        displayWrite(0,"   ShutDown    ")
+        displayWrite(1," 5-Yes other-No  ")
         val key = TUI.read(5000)
         return key == '5'
     }
 
     private fun statsScreen(){
-        displayWrite(0,"Games:$Games   ")
-        displayWrite(1,"Coins:$Coins   ")
-        Time.sleep(5000)
+        displayWrite(0,"Games:$Games         ")
+        displayWrite(1,"Coins:$Coins         ")
     }
     /**
      * Draws the pick ship screen
@@ -145,8 +201,6 @@ object APP {
         currTime = getTime()
         while (!checkTimeout(time, END_SCREEN_TIME)) {
             currTime = getTime()
-            ScoreDisplay.off(true)
-            ScoreDisplay.off(false)
         }
         setScoreAnimation()
     }
